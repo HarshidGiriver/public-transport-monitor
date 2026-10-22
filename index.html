@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Public Transport Monitoring Dashboard</title>
+  <style>
+    :root {
+      font-family: Arial, sans-serif;
+      color: #172b3a;
+      background: #f3f7fa;
+    }
+    body {
+      margin: 0;
+    }
+    header {
+      background: #123b55;
+      color: white;
+      padding: 24px 5%;
+    }
+    header h1 {
+      margin: 0 0 8px;
+    }
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .card, .panel {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 8px #17364a12;
+    }
+    .metric {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .toolbar {
+      margin: 18px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    input, select {
+      padding: 10px;
+      border: 1px solid #b8c8d2;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #e0e8ed;
+    }
+    th {
+      background: #eaf1f5;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .low {
+      background: #d9f5e5;
+      color: #14653a;
+    }
+    .moderate {
+      background: #fff0c2;
+      color: #805500;
+    }
+    .high, .delayed {
+      background: #ffe0df;
+      color: #9a2420;
+    }
+    .normal {
+      background: #d9f5e5;
+      color: #14653a;
+    }
+    .disruption {
+      border-left: 4px solid #d97706;
+      margin: 8px 0;
+      padding: 10px 12px;
+      background: #fff7e7;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #526977;
+      font-size: 13px;
+    }
+    @media (max-width: 650px) {
+      table {
+        font-size: 12px;
+      }
+      th, td {
+        padding: 8px 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Public Transport Monitoring</h1>
+    <div>Simulated live information · Passenger service dashboard</div>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="card">
+        <div>Routes monitored</div>
+        <div class="metric" id="routeCount">0</div>
+      </div>
+      <div class="card">
+        <div>Service disruptions</div>
+        <div class="metric" id="disruptionCount">0</div>
+      </div>
+      <div class="card">
+        <div>High crowd level</div>
+        <div class="metric" id="highCount">0</div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Passenger advisories</h2>
+      <p>Allow extra travel time on Route 22 due to traffic near Central Market.</p>
+      <p>Passengers using Route 7 should board at the temporary stop on Lake Road.</p>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Bus routes</h2>
+      <div class="toolbar">
+        <label for="routeFilter">Filter by route number:</label>
+        <input id="routeFilter" type="search" placeholder="e.g. 22" aria-label="Filter route number">
+        <button id="clearFilter" type="button">Clear filter</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>From</th>
+              <th>To</th>
+              <th>ETA</th>
+              <th>Crowd</th>
+              <th>Service status</th>
+              <th>Disruption / advisory</th>
+            </tr>
+          </thead>
+          <tbody id="routeRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Service disruptions</h2>
+      <div class="disruption">Route 22: expected delay of 10 minutes due to traffic near Central Market.</div>
+      <div class="disruption">Route 7: diversion via Lake Road; Old Library stop temporarily closed.</div>
+      <div class="disruption">Route 15: normal service; no active disruption reported.</div>
+    </section>
+  </main>
+  
+  <footer>Demonstration dashboard — all route and arrival data are simulated.</footer>
+
+  <script>
+    const buses = [
+      { 
+        route: "7", 
+        from: "Central Station", 
+        to: "Lake Road", 
+        eta: "5 min", 
+        crowd: "Moderate", 
+        status: "Diverted", 
+        advisory: "Diversion via Lake Road" 
+      },
+      { 
+        route: "15", 
+        from: "University", 
+        to: "City Hospital", 
+        eta: "8 min", 
+        crowd: "Low", 
+        status: "On time", 
+        advisory: "No active disruption" 
+      },
+      { 
+        route: "22", 
+        from: "Central Market", 
+        to: "Tech Park", 
+        eta: "17 min", 
+        crowd: "High", 
+        status: "Delayed", 
+        advisory: "10-minute delay due to traffic" 
+      },
+      { 
+        route: "31", 
+        from: "West End", 
+        to: "Central Station", 
+        eta: "4 min", 
+        crowd: "Moderate", 
+        status: "On time", 
+        advisory: "Use marked boarding bays" 
+      },
+      { 
+        route: "44", 
+        from: "Riverside", 
+        to: "University", 
+        eta: "12 min", 
+        crowd: "Low", 
+        status: "On time", 
+        advisory: "No active disruption" 
+      }
+    ];
+
+    function renderRoutes() {
+      const query = document.getElementById("routeFilter").value.trim().toLowerCase();
+      const visible = buses.filter(bus => bus.route.toLowerCase().includes(query));
+      
+      document.getElementById("routeRows").innerHTML = visible.map(bus => {
+        const crowdClass = bus.crowd.toLowerCase();
+        const statusClass = bus.status === "Delayed" ? "delayed" : "normal";
+        return `<tr>
+          <td>${bus.route}</td>
+          <td>${bus.from}</td>
+          <td>${bus.to}</td>
+          <td>${bus.eta}</td>
+          <td><span class="pill ${crowdClass}">${bus.crowd}</span></td>
+          <td><span class="pill ${statusClass}">${bus.status}</span></td>
+          <td>${bus.advisory}</td>
+        </tr>`;
+      }).join("");
+
+      document.getElementById("routeCount").textContent = buses.length;
+      document.getElementById("disruptionCount").textContent = buses.filter(bus => bus.status === "Delayed" || bus.status === "Diverted").length;
+      document.getElementById("highCount").textContent = buses.filter(bus => bus.crowd === "High").length;
+    }
+
+    document.getElementById("routeFilter").addEventListener("input", renderRoutes);
+    document.getElementById("clearFilter").addEventListener("click", () => {
+      document.getElementById("routeFilter").value = "";
+      renderRoutes();
+    });
+
+    renderRoutes();
+  </script>
+</body>
+</html>
